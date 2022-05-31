@@ -457,6 +457,13 @@ public final class Control {
 		public final OptimizationStrategy strategy = addE("strategy", "os", OptimizationStrategy.DECREASING, "Optimization strategy");
 		public final boolean replaceObjVar = addB("replaceObjVar", "rov", true,
 				"Must we replace the objective variable by an objective constraint, when possible?");
+
+		// ABD
+		public final String gap = addS("gap", "gap", "UnitaryGap", "The gap between solution bounds.");
+
+		public double prevFactor = addD("factor_prev_gap","fpg",1,"The factor used for previous gap method for optimisation.");
+		public final double expoGapFactor = addD("expoGapFactor", "expoGapFactor", 2, "The factor used for the exponential gap method for optimisation.");
+		public final double extCutoff = addD("extCutoff", "extCutoff", 0, "The cutoff is extends by 'extCutoff' times the used one for the current bound.");
 	}
 
 	public class OptionsExtension extends OptionGroup {

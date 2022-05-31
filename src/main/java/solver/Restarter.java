@@ -31,6 +31,11 @@ import variables.Variable;
  */
 public class Restarter implements ObserverOnRuns {
 
+	public long offset;
+	private long beforeRunCutoff;
+	private int subRunCounter;
+	private long decFactor;
+
 	/**
 	 * Builds and returns a restarter object to be attached to the specified solver
 	 * 
@@ -78,11 +83,19 @@ public class Restarter implements ObserverOnRuns {
 			nRestartsSinceReset = 0;
 		}
 		if (currCutoff != Long.MAX_VALUE) {
-			long offset = options.luby ? lubyCutoffFor(nRestartsSinceReset + (long) 1) * 150
+			this.offset = options.luby ? lubyCutoffFor(nRestartsSinceReset + (long) 1) * 150
 					: (long) (baseCutoff * Math.pow(options.factor, nRestartsSinceReset));
-			currCutoff = measureSupplier.get() + offset;
+			this.beforeRunCutoff = measureSupplier.get();
+			currCutoff = measureSupplier.get() + this.offset;
 		}
 		nRestartsSinceReset++;
+	}
+
+	public void extendCutoff() {
+		long cutoffAtNewBound = measureSupplier.get();
+		long diff = cutoffAtNewBound - this.beforeRunCutoff;
+		this.beforeRunCutoff = cutoffAtNewBound;
+		this.currCutoff += diff * this.solver.head.control.optimization.extCutoff;
 	}
 
 	/**********************************************************************************************

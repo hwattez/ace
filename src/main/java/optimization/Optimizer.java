@@ -18,12 +18,14 @@ import static utility.Kit.control;
 
 import java.util.stream.Stream;
 
+import optimization.gap.IGap;
 import org.xcsp.common.Types.TypeOptimization;
 
 import dashboard.Input;
 import interfaces.Observers.ObserverOnRuns;
 import problem.Problem;
 import utility.Kit;
+import utility.Reflector;
 
 /**
  * A pilot for dealing with (mono-objective) optimization. Subclasses define various strategies to conduct search toward
@@ -94,6 +96,8 @@ public abstract class Optimizer implements ObserverOnRuns {
 				shiftLimitWhenFailure();
 			}
 		}
+
+		this.gapStrategy.afterRun();
 	}
 
 	/**********************************************************************************************
@@ -139,6 +143,9 @@ public abstract class Optimizer implements ObserverOnRuns {
 	 */
 	public long maxBound;
 
+	// ABD
+	public IGap gapStrategy;
+
 	public Optimizer(Problem pb, TypeOptimization opt, Optimizable clb, Optimizable cub) {
 		this.problem = pb;
 		control(opt != null && clb != null && cub != null);
@@ -148,6 +155,9 @@ public abstract class Optimizer implements ObserverOnRuns {
 		this.ctr = opt == MINIMIZE ? cub : clb; // the leading constraint (used at some places in other classes)
 		this.minBound = clb.limit();
 		this.maxBound = cub.limit();
+
+		// ABD
+		this.gapStrategy = Reflector.buildObject(problem.head.control.optimization.gap, IGap.class, this, minimization, problem);
 	}
 
 	/**
@@ -171,6 +181,12 @@ public abstract class Optimizer implements ObserverOnRuns {
 	@Override
 	public String toString() {
 		return minimization ? MINIMIZE.shortName() + " " + cub : MAXIMIZE.shortName() + " " + clb.toString();
+	}
+
+
+	// ABD
+	public long nextGap() {
+		return this.gapStrategy.nextGap();
 	}
 
 	/**********************************************************************************************

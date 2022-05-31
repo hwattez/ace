@@ -67,6 +67,7 @@ public final class Solutions {
 	 * given otherwise
 	 */
 	public long bestBound;
+	public long bestBoundTimestamp;
 
 	/**
 	 * The last found solution (array containing indexes of values, and not values), or null
@@ -87,6 +88,8 @@ public final class Solutions {
 	 * The object used to output solutions in XML
 	 */
 	private XML xml;
+
+	public long lastBudget;
 
 	/**
 	 * An object used for competitions
@@ -312,6 +315,9 @@ public final class Solutions {
 	public void handleNewSolution(boolean controlSolution) {
 		control(!controlSolution || controlFoundSolution());
 		found++;
+		this.lastBudget = this.solver.restarter.measureSupplier.get() - this.bestBoundTimestamp;
+		this.bestBoundTimestamp = this.solver.restarter.measureSupplier.get();
+		this.solver.restarter.extendCutoff();
 		lastRun = solver.restarter.numRun;
 		// solutionHamming();
 		if (found >= limit)
@@ -335,7 +341,7 @@ public final class Solutions {
 			control(z < bestBound, () -> "z=" + z + " bb=" + bestBound);
 			bestBound = z;
 		} else if (solver.problem.optimizer != null) { // COP
-			bestBound = solver.problem.optimizer.value();
+			this.bestBound = solver.problem.optimizer.value();
 			Color.GREEN.println("o " + bestBound, "  " + (solver.head.instanceStopwatch.wckTimeInSeconds()));
 
 			// solver.restarter.currCutoff += 20;

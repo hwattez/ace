@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import optimization.gap.GapStrategy;
 import org.xcsp.common.Constants;
 
 import constraints.Constraint;
@@ -870,7 +871,7 @@ public class Solver implements ObserverOnBacktracksSystematic {
 																										// constraint
 				if (copContinue) {
 					// first, we directly change the limit value of the leading objective constraint
-					problem.optimizer.ctr.limit(problem.optimizer.ctr.objectiveValue() + (problem.optimizer.minimization ? -1 : 1));
+					problem.optimizer.ctr.limit(problem.optimizer.ctr.objectiveValue() + problem.optimizer.nextGap());
 					// next, we backtrack to the level where a value for a variable in the scope of the objective was
 					// removed for the last time
 					int backtrackLevel = -1;
@@ -955,6 +956,21 @@ public class Solver implements ObserverOnBacktracksSystematic {
 				observer.beforeRun();
 			if (stopping != FULL_EXPLORATION) // an observer might modify the object stopping
 				doRun();
+
+			if (stopping == FULL_EXPLORATION && this.problem.optimizer != null && !this.problem.optimizer.gapStrategy.hasBeenAlwaysSafe()) {
+				((GapStrategy)this.problem.optimizer.gapStrategy).alwaysSafe = true;
+				Kit.control(problem.features.nValuesRemovedAtConstructionTime == 0, () -> "Not handled for the moment");
+				this.restoreProblem();
+				//this.problem.reset();
+				//this.reset();
+				stopping = null;
+				problem.solver.restarter.forceRootPropagation = true;
+				if (problem.solver.nogoodReasoner != null)
+					problem.solver.nogoodReasoner.reset();
+
+				System.out.println("FULL_RESTORING");
+			}
+
 			for (ObserverOnRuns observer : observersOnRuns)
 				observer.afterRun();
 		}
