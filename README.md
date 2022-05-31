@@ -43,3 +43,7 @@ With this JAR, you can run ACE on any XCSP3 instance.
    `gradle test`
 1. see results in:  
    `ace/build/reports/tests/index.html`
+   
+## To execute ABD
+
+Example : `java -jar build/libs/ACE-2.0.jar $f -positive=str2 -extd=False -gap=ExponentialGap -expoGapFactor=2 -extCutoff=1` where `$f` is the instance.
